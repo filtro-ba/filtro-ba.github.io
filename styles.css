@@ -267,3 +267,37 @@ dialog[open] { animation: up .22s ease-out; }
 .empty-acc .pill { margin: 0; text-decoration: none; }
 .foot-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
 .foot-t { font: 800 24px/1.1 var(--serif); color: var(--ink); margin: 0 !important; }
+
+/* Mis cafés */
+.fbar { grid-template-columns: minmax(0, 1fr) minmax(180px, 260px); }
+.mis-btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line-strong); text-decoration: none; font-size: 14px; font-weight: 500; color: var(--ink); }
+.mis-btn svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.mis-btn .n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--lima); color: var(--on-lima); font-size: 12px; font-weight: 600; display: inline-grid; place-items: center; }
+.mis-btn.on { background: var(--seg-on-bg); color: var(--seg-on-ink); border-color: var(--seg-on-bg); }
+.mis-btn.on svg { fill: currentColor; }
+.mis { padding-top: 20px; padding-bottom: 56px; }
+.volver { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 8px; margin-left: -8px; border-radius: 99px; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--ink); }
+.volver:hover { background: var(--surface); }
+.volver svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.mis h1 { margin-top: 18px; outline: none; }
+.mis h1 em { font-size: .55em; letter-spacing: 0; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; max-width: 720px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.stat .v { display: block; font: 800 clamp(32px, 6vw, 44px)/1 var(--serif); color: var(--ink); }
+.stat:first-child .v { color: var(--lima); }
+:root[data-theme=light] .stat:first-child { background: var(--lima); border-color: var(--lima); }
+:root[data-theme=light] .stat:first-child .v, :root[data-theme=light] .stat:first-child .k { color: var(--on-lima); }
+@media (prefers-color-scheme: light) { :root:not([data-theme]) .stat:first-child { background: var(--lima); border-color: var(--lima); } :root:not([data-theme]) .stat:first-child .v, :root:not([data-theme]) .stat:first-child .k { color: var(--on-lima); } }
+.stat .k { display: block; margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+.prog { max-width: 720px; height: 10px; border-radius: 99px; background: var(--surface-2); margin-top: 20px; overflow: hidden; }
+.prog div { height: 100%; width: 0; background: var(--lima); border-radius: 99px; transition: width .6s ease; }
+.prog-t { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+.mis-tabs { display: flex; gap: 8px; margin: 32px 0 16px; }
+.mis-nota { margin-top: 24px; font-size: 13px; color: var(--ink-2); }
+@media (max-width: 640px) {
+  .fbar { grid-template-columns: minmax(0, 1fr); }
+  .mis-btn { padding: 0 12px; }
+  .mis-btn .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .stats { gap: 8px; }
+  .stat { padding: 12px; }
+}

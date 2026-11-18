@@ -12,7 +12,7 @@
   const ZONAS = { CABA: 'Capital', 'Zona norte': 'Zona norte' };
 
   let cafes = [];
-  const state = { barrios: new Set(), zonas: new Set(), tags: new Set(), fav: false, vista: 'lista' };
+  const state = { barrios: new Set(), zonas: new Set(), tags: new Set(), vista: 'lista', pagina: 'guia', tab: 'pp' };
   let store = { fav: [], fui: [] };
   try { store = Object.assign(store, JSON.parse(localStorage.getItem('filtro:mios') || '{}')); } catch (e) {}
   const save = () => { try { localStorage.setItem('filtro:mios', JSON.stringify(store)); } catch (e) {} };
@@ -49,7 +49,6 @@
   const filtered = () => cafes.filter((c) => {
     if (lugarActivo() && !c.sedes.some(sedeCoincide)) return false;
     for (const t of state.tags) if (!c.tags.includes(t)) return false;
-    if (state.fav && !has('fav', c.id)) return false;
     return true;
   });
   const contar = (fn) => {
@@ -95,7 +94,7 @@
   const closeBList = () => { bList.hidden = true; bInput.setAttribute('aria-expanded', 'false'); };
   const elegir = (o) => {
     bInput.value = ''; bActive = 0; closeBList();
-    if (o.tipo === 'cafe') { location.hash = o.v; return; }
+    if (o.tipo === 'cafe') { abrir(o.v); return; }
     (o.tipo === 'zona' ? state.zonas : state.barrios).add(o.v);
     render(); bInput.focus();
   };
@@ -142,9 +141,6 @@
     if (e.target.closest('[data-plan-ok]')) { setPlanOpen(false); planBtn.focus(); }
   });
 
-  // ---------- Favoritos ----------
-  $('#fav-btn').addEventListener('click', () => { state.fav = !state.fav; render(); });
-
   document.addEventListener('click', (e) => {
     const path = e.composedPath();
     if (!path.includes($('#combo'))) closeBList();
@@ -159,7 +155,7 @@
       ${c.foto ? `<img src="${esc(c.foto.src)}" alt="${esc(c.nombre)}" loading="lazy">` : `<span class="ini" aria-hidden="true">${esc(inicial(c.nombre))}</span>`}
       <div class="badges">
         ${c.resena ? `<span class="badge resena">Reseñado por @${esc(c.resena.autor)}</span>` : ''}
-        ${has('fui', c.id) ? '<span class="badge fui">Ya fui</span>' : ''}
+        ${has('fui', c.id) ? '<span class="badge fui">Visitado</span>' : ''}
       </div>
       <span class="b">${esc(s.barrio)}</span>
       ${c.foto && c.foto.credito ? `<span class="credito">Foto: ${esc(c.foto.credito)}</span>` : ''}
@@ -174,7 +170,7 @@
           <h2>${esc(c.nombre)}</h2>
           <p class="dir">${esc(s.dir)}${otras ? ` · +${plural(otras, 'sede', 'sedes')}` : ''}</p>
         </div>
-        <button class="heart${has('fav', c.id) ? ' on' : ''}" data-fav="${c.id}" aria-pressed="${has('fav', c.id)}" aria-label="${has('fav', c.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}">${HEART}</button>
+        <button class="heart${has('fav', c.id) ? ' on' : ''}" data-fav="${c.id}" aria-pressed="${has('fav', c.id)}" aria-label="${has('fav', c.id) ? 'Sacar de Por probar' : 'Guardar en Por probar'}">${HEART}</button>
       </div>
       <p class="desc">${esc(c.destacado)}</p>
       ${c.tags.length ? `<div class="tags">${c.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
@@ -184,12 +180,12 @@
   const render = () => {
     renderChips();
     renderPlan();
-    const fb = $('#fav-btn');
-    fb.classList.toggle('on', state.fav);
-    fb.setAttribute('aria-pressed', state.fav);
-    $('#fav-n').textContent = store.fav.length || '';
+    const pendientes = store.fav.filter((id) => !has('fui', id)).length;
+    $('#mis-n').textContent = pendientes;
+    $('#mis-n').hidden = !pendientes;
+    if (state.pagina === 'mis') renderMis();
     const list = filtered();
-    const active = lugarActivo() || state.tags.size || state.fav;
+    const active = lugarActivo() || state.tags.size;
     $('#count').textContent = `${plural(list.length, 'café', 'cafés')}${active ? ' con estos filtros' : ' en la guía'}`;
     $('#limpiar').hidden = !active;
     $('#vacio').hidden = list.length > 0;
@@ -199,18 +195,30 @@
     else drawMap(list);
   };
 
-  const clear = () => { state.barrios.clear(); state.zonas.clear(); state.tags.clear(); state.fav = false; render(); };
+  const clear = () => { state.barrios.clear(); state.zonas.clear(); state.tags.clear(); render(); };
   $('#limpiar').addEventListener('click', clear);
   $('#vacio-btn').addEventListener('click', clear);
 
+  const onGrid = (el) => {
+    el.addEventListener('click', (e) => {
+      const f = e.target.closest('[data-fav]');
+      if (f) { e.stopPropagation(); toggle('fav', f.dataset.fav); return; }
+      const c = e.target.closest('.card');
+      if (c) abrir(c.dataset.id);
+    });
+    el.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')) { e.preventDefault(); abrir(e.target.dataset.id); }
+    });
+  };
+  onGrid($('#mis-lista'));
   $('#lista').addEventListener('click', (e) => {
     const f = e.target.closest('[data-fav]');
     if (f) { e.stopPropagation(); toggle('fav', f.dataset.fav); return; }
     const c = e.target.closest('.card');
-    if (c) location.hash = c.dataset.id;
+    if (c) abrir(c.dataset.id);
   });
   $('#lista').addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')) { e.preventDefault(); location.hash = e.target.dataset.id; }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')) { e.preventDefault(); abrir(e.target.dataset.id); }
   });
 
   // ---------- Vistas ----------
@@ -267,7 +275,7 @@
       layer = L.layerGroup().addTo(map);
       map.on('popupopen', (e) => {
         const b = e.popup.getElement().querySelector('[data-open]');
-        if (b) b.onclick = () => { location.hash = b.dataset.open; };
+        if (b) b.onclick = () => { abrir(b.dataset.open); };
       });
     }
     setTimeout(() => map.invalidateSize(), 0);
@@ -280,7 +288,7 @@
         L.circleMarker([s.lat, s.lng], {
           radius: fav ? 11 : 8, color: '#1C1410', weight: 2, fillOpacity: 1,
           fillColor: fui ? (dark ? '#E8D9C4' : '#6B5A4C') : '#C6F432',
-        }).bindPopup(`<div class="pop"><div class="pop-b">${esc(s.barrio)}${fui ? ' · Ya fui' : ''}</div><div class="pop-n">${esc(c.nombre)}</div><div class="pop-d">${esc(s.dir)}</div><button class="pill on" data-open="${c.id}">Ver ficha</button></div>`).addTo(layer);
+        }).bindPopup(`<div class="pop"><div class="pop-b">${esc(s.barrio)}${fui ? ' · Visitado' : ''}</div><div class="pop-n">${esc(c.nombre)}</div><div class="pop-d">${esc(s.dir)}</div><button class="pill on" data-open="${c.id}">Ver ficha</button></div>`).addTo(layer);
       });
     });
     // Sin filtro de lugar, encuadramos la ciudad y la zona norte cercana (Pilar queda a un zoom de distancia)
@@ -291,6 +299,8 @@
 
   // ---------- Ficha ----------
   const dlg = $('#ficha');
+  let fichaPush = false;
+  function abrir(id) { fichaPush = true; location.hash = id; }
   const mapsUrl = (c, s) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${c.nombre}, ${s.dir}, ${s.barrio}, Buenos Aires`)}`;
   function openFicha(id, show = true) {
     const c = cafes.find((x) => x.id === id);
@@ -310,8 +320,8 @@
       <p class="f-desc">${esc(c.destacado)}</p>
       ${c.resena ? `<a class="f-resena" href="${esc(c.resena.link)}" target="_blank" rel="noopener"><span>Reseñado por <strong>@${esc(c.resena.autor)}</strong></span><span aria-hidden="true">→</span></a>` : ''}
       <div class="f-actions">
-        <button class="pill${fav ? ' on' : ''}" data-t="fav" aria-pressed="${fav}">${fav ? 'En favoritos' : 'Guardar en favoritos'}</button>
-        <button class="pill${fui ? ' on' : ''}" data-t="fui" aria-pressed="${fui}">${fui ? 'Ya fui' : 'Marcar como "ya fui"'}</button>
+        <button class="pill${fav && !fui ? ' on' : ''}" data-t="fav" aria-pressed="${fav}"${fui ? ' hidden' : ''}>${fav ? 'En Por probar' : 'Guardar para probar'}</button>
+        <button class="pill${fui ? ' on' : ''}" data-t="fui" aria-pressed="${fui}">${fui ? 'Visitado' : 'Marcar como visitado'}</button>
       </div>
       <ul class="f-list">
         <li><span class="k">${c.sedes.length > 1 ? 'Sedes' : 'Dirección'}</span><span class="sedes">${c.sedes.map((s) => `<a href="${mapsUrl(c, s)}" target="_blank" rel="noopener"><span>${esc(s.dir)}</span><span class="sb">${esc(s.barrio)}</span></a>`).join('')}</span></li>
@@ -331,7 +341,9 @@
     if (t) toggle(t.dataset.t, dlg.dataset.id);
   });
   dlg.addEventListener('close', () => {
-    if (location.hash.slice(1) === dlg.dataset.id) history.replaceState(null, '', state.vista === 'mapa' ? '#mapa' : location.pathname + location.search);
+    if (location.hash.slice(1) !== dlg.dataset.id) return;
+    if (fichaPush) { fichaPush = false; history.back(); }
+    else history.replaceState(null, '', state.pagina === 'mis' ? '#mis-cafes' : state.vista === 'mapa' ? '#mapa' : location.pathname + location.search);
   });
 
   // ---------- Sugerir un café ----------
@@ -340,11 +352,69 @@
     else { a.hidden = true; const box = a.closest('.foot-top'); if (box) box.hidden = true; }
   });
 
+  // ---------- Mis cafés ----------
+  const MIS_VACIO = {
+    pp: ['Tu lista de Por probar está vacía', 'Tocá el corazón de cualquier café de la guía y aparece acá.'],
+    vis: ['Todavía no marcaste ningún café', 'Cuando vayas a uno, abrí su ficha y tocá "Marcar como visitado".'],
+  };
+  function renderMis() {
+    const vis = cafes.filter((c) => has('fui', c.id));
+    const pp = cafes.filter((c) => has('fav', c.id) && !has('fui', c.id));
+    const barrios = new Set(vis.map((c) => c.sedes[0].barrio));
+    $('#st-vis').textContent = vis.length;
+    $('#st-pp').textContent = pp.length;
+    $('#st-bar').textContent = barrios.size;
+    $('#prog-bar').style.width = `${cafes.length ? Math.round((vis.length / cafes.length) * 100) : 0}%`;
+    $('#prog-t').textContent = `${vis.length} de ${cafes.length} cafés de la guía`;
+    $('#tab-pp').textContent = pp.length;
+    $('#tab-vis').textContent = vis.length;
+    document.querySelectorAll('.mis-tabs [data-tab]').forEach((b) => {
+      const on = b.dataset.tab === state.tab;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on);
+    });
+    const list = state.tab === 'pp' ? pp : vis;
+    $('#mis-lista').innerHTML = list.map(card).join('');
+    $('#mis-lista').hidden = !list.length;
+    $('#mis-vacio').hidden = list.length > 0;
+    $('#mis-vacio-t').textContent = MIS_VACIO[state.tab][0];
+    $('#mis-vacio-d').textContent = MIS_VACIO[state.tab][1];
+  }
+  document.querySelector('.mis-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tab]');
+    if (b) { state.tab = b.dataset.tab; renderMis(); }
+  });
+  let scrollGuia = 0, entroDesdeGuia = false;
+  function setPagina(p) {
+    if (state.pagina === p) return;
+    if (p === 'mis') { scrollGuia = window.scrollY; entroDesdeGuia = true; }
+    state.pagina = p;
+    $('#guia').hidden = p !== 'guia';
+    $('#mis').hidden = p !== 'mis';
+    $('#mis-btn').classList.toggle('on', p === 'mis');
+    $('#mis-btn').setAttribute('aria-current', p === 'mis' ? 'page' : 'false');
+    if (p === 'mis') { renderMis(); window.scrollTo(0, 0); $('#mis-t').focus({ preventScroll: true }); }
+    else { render(); window.scrollTo(0, scrollGuia); }
+  }
+  $('#volver').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (entroDesdeGuia) history.back();
+    else { history.replaceState(null, '', location.pathname + location.search); setPagina('guia'); }
+  });
+  document.querySelectorAll('#mis-vacio a, .logo').forEach((a) => a.addEventListener('click', (e) => {
+    if (state.pagina !== 'mis') return;
+    e.preventDefault();
+    $('#volver').click();
+  }));
+
   // ---------- Rutas ----------
   const route = () => {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h === 'mapa') { if (state.vista !== 'mapa') setVista('mapa', false); return; }
-    if (h && cafes.some((c) => c.id === h)) openFicha(h);
+    if (h === 'mis-cafes') { if (dlg.open) dlg.close(); setPagina('mis'); return; }
+    if (h && cafes.some((c) => c.id === h)) { openFicha(h); return; }
+    if (dlg.open) dlg.close();
+    setPagina('guia');
+    if (h === 'mapa' && state.vista !== 'mapa') setVista('mapa', false);
   };
   window.addEventListener('hashchange', route);
 

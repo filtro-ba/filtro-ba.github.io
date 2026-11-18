@@ -36,6 +36,7 @@
   <div class="top-in">
     <a class="logo" href="#" aria-label="Filtro, inicio"><span>Filtro</span></a>
     <div class="top-actions">
+      <a id="mis-btn" class="mis-btn" href="#mis-cafes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-9.2-9.4C1.6 7.2 3.9 4 7.2 4c2 0 3.5 1.1 4.8 2.8C13.3 5.1 14.8 4 16.8 4c3.3 0 5.6 3.2 4.4 6.6C19.5 15.4 12 20 12 20z"/></svg><span class="lbl">Mis cafés</span><span class="n" id="mis-n" hidden></span></a>
       <button id="tema" class="icon-btn" aria-label="Cambiar a modo claro">
         <svg class="i-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
         <svg class="i-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -45,9 +46,10 @@
 </header>
 
 <main>
+  <div id="guia">
   <section class="intro band">
     <h1>Cafés de especialidad<br><em>en Buenos Aires</em></h1>
-    <p class="lead">Más de 100 cafés de Capital y zona norte para encontrar el próximo: filtrá por barrio o por plan, miralos en el mapa y llevá la cuenta de los que ya probaste.</p>
+    <p class="lead">Más de 100 cafés de Capital y zona norte para encontrar el próximo: filtrá por barrio o por plan, miralos en el mapa y armá tu recorrido con los que querés probar y los que ya visitaste.</p>
   </section>
 
   <section class="controls band" aria-label="Filtros">
@@ -65,10 +67,6 @@
         </button>
         <div id="plan-menu" class="menu" hidden></div>
       </div>
-      <button id="fav-btn" class="fav-btn" aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-9.2-9.4C1.6 7.2 3.9 4 7.2 4c2 0 3.5 1.1 4.8 2.8C13.3 5.1 14.8 4 16.8 4c3.3 0 5.6 3.2 4.4 6.6C19.5 15.4 12 20 12 20z"/></svg>
-        <span>Favoritos</span><span class="n" id="fav-n"></span>
-      </button>
     </div>
   </section>
 
@@ -91,6 +89,32 @@
       <div class="empty-acc"><button class="pill on" id="vacio-btn">Ver todos</button><a class="pill" data-sugerir href="#" target="_blank" rel="noopener">Sugerí un café</a></div>
     </div>
   </section>
+  </div>
+
+  <section id="mis" class="band mis" hidden aria-labelledby="mis-t">
+    <a class="volver" href="#" id="volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Volver a la guía
+    </a>
+    <h1 id="mis-t" tabindex="-1">Mis cafés <em>tu recorrido</em></h1>
+    <div class="stats">
+      <div class="stat"><span class="v" id="st-vis">0</span><span class="k">visitados</span></div>
+      <div class="stat"><span class="v" id="st-pp">0</span><span class="k">por probar</span></div>
+      <div class="stat"><span class="v" id="st-bar">0</span><span class="k">barrios recorridos</span></div>
+    </div>
+    <div class="prog" aria-hidden="true"><div id="prog-bar"></div></div>
+    <p class="prog-t" id="prog-t"></p>
+    <div class="mis-tabs" role="tablist" aria-label="Mis listas">
+      <button class="pill on" role="tab" aria-selected="true" data-tab="pp">Por probar <span class="n" id="tab-pp"></span></button>
+      <button class="pill" role="tab" aria-selected="false" data-tab="vis">Visitados <span class="n" id="tab-vis"></span></button>
+    </div>
+    <div id="mis-lista" class="grid"></div>
+    <div id="mis-vacio" class="empty" hidden>
+      <p class="empty-t" id="mis-vacio-t"></p>
+      <p id="mis-vacio-d"></p>
+      <div class="empty-acc"><a class="pill on" href="#">Explorar la guía</a></div>
+    </div>
+    <p class="mis-nota">Tus listas se guardan en este dispositivo.</p>
+  </section>
 </main>
 
 <footer class="band foot">
@@ -99,7 +123,7 @@
     <a class="btn main" data-sugerir href="#" target="_blank" rel="noopener">Sugerí un café</a>
   </div>
   <p><strong>Filtro</strong> · Una guía armada a partir de rankings y medios especializados: The World's 100 Best Coffee Shops, Time Out, La Nación, El Cronista, Sprudge, Forbes, Ámbito e iProfesional, entre otros. Datos revisados en noviembre de 2026.</p>
-  <p>Los horarios y las sedes pueden cambiar: confirmá antes de ir. Tus favoritos se guardan solo en este navegador.</p>
+  <p>Los horarios y las sedes pueden cambiar: confirmá antes de ir. Tus listas de Mis cafés se guardan solo en este navegador.</p>
 </footer>
 
 <dialog id="ficha" aria-labelledby="ficha-t">
