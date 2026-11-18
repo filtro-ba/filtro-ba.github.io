@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filtro · Cafés de especialidad en Buenos Aires y zona norte</title>
+<meta name="description" content="Más de 100 cafés de especialidad en Buenos Aires y zona norte: filtrá por barrio y plan, miralos en el mapa y guardá tus favoritos.">
+<meta name="theme-color" content="#1C1410">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231C1410'/%3E%3Ctext x='32' y='47' font-family='Georgia,serif' font-weight='800' font-size='44' text-anchor='middle' fill='%23C6F432'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,800;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try {
+    var t = localStorage.getItem('filtro:tema');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="#" aria-label="Filtro, inicio"><span>Filtro</span></a>
+    <div class="top-actions">
+      <button id="tema" class="icon-btn" aria-label="Cambiar a modo claro">
+        <svg class="i-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        <svg class="i-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="intro band">
+    <h1>Cafés de especialidad<br><em>en Buenos Aires</em></h1>
+    <p class="lead">Más de 100 cafés de Capital y zona norte para encontrar el próximo: filtrá por barrio o por plan, miralos en el mapa y llevá la cuenta de los que ya probaste.</p>
+  </section>
+
+  <section class="controls band" aria-label="Filtros">
+    <div class="fbar">
+      <div class="combo" id="combo">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <div class="chips" id="chips"></div>
+        <input id="b-input" type="text" role="combobox" aria-expanded="false" aria-controls="b-list" aria-autocomplete="list" aria-label="Barrios" placeholder="Ingresá uno o más barrios" autocomplete="off">
+        <ul id="b-list" class="menu" role="listbox" aria-label="Barrios" hidden></ul>
+      </div>
+      <div class="dd" id="dd-plan">
+        <button id="plan-btn" class="dd-btn" aria-haspopup="true" aria-expanded="false" aria-controls="plan-menu">
+          <span id="plan-lbl">Plan</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="plan-menu" class="menu" hidden></div>
+      </div>
+      <button id="fav-btn" class="fav-btn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-9.2-9.4C1.6 7.2 3.9 4 7.2 4c2 0 3.5 1.1 4.8 2.8C13.3 5.1 14.8 4 16.8 4c3.3 0 5.6 3.2 4.4 6.6C19.5 15.4 12 20 12 20z"/></svg>
+        <span>Favoritos</span><span class="n" id="fav-n"></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="band results">
+    <div class="res-head">
+      <div class="res-info">
+        <p id="count" aria-live="polite"></p>
+        <button id="limpiar" class="link-btn" hidden>Limpiar filtros</button>
+      </div>
+      <div class="seg" role="tablist" aria-label="Vista">
+        <button id="v-lista" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Lista</button>
+        <button id="v-mapa" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Mapa</button>
+      </div>
+    </div>
+    <div id="lista" class="grid"></div>
+    <div id="mapa-wrap" hidden><div id="mapa"></div><p id="mapa-nota" class="mapa-nota" hidden>El mapa de calles no pudo cargar acá, así que te mostramos los barrios como referencia. En la versión publicada se ve completo.</p></div>
+    <div id="vacio" class="empty" hidden>
+      <p class="empty-t">Ningún café pasa este filtro</p>
+      <p>Probá con otro barrio o sacá algún filtro.</p>
+      <div class="empty-acc"><button class="pill on" id="vacio-btn">Ver todos</button><a class="pill" data-sugerir href="#" target="_blank" rel="noopener">Sugerí un café</a></div>
+    </div>
+  </section>
+</main>
+
+<footer class="band foot">
+  <div class="foot-top">
+    <p class="foot-t">¿Falta tu café favorito?</p>
+    <a class="btn main" data-sugerir href="#" target="_blank" rel="noopener">Sugerí un café</a>
+  </div>
+  <p><strong>Filtro</strong> · Una guía armada a partir de rankings y medios especializados: The World's 100 Best Coffee Shops, Time Out, La Nación, El Cronista, Sprudge, Forbes, Ámbito e iProfesional, entre otros. Datos revisados en noviembre de 2026.</p>
+  <p>Los horarios y las sedes pueden cambiar: confirmá antes de ir. Tus favoritos se guardan solo en este navegador.</p>
+</footer>
+
+<dialog id="ficha" aria-labelledby="ficha-t">
+  <div class="ficha-in" id="ficha-in"></div>
+</dialog>
+
+<script src="vendor/leaflet.js"></script>
+<script src="cafes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
